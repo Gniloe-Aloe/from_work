@@ -13,4 +13,3 @@ timer::~timer()
 	std::chrono::duration<float> duration = end - start;
 	std::cout << "Process duration =  " << duration.count() << " second" << std::endl;
 }
-

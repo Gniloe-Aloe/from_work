@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <thread>
 #include <chrono>
@@ -7,6 +7,7 @@
 #include <vector>
 #include "timer.h"
 #include <future>
+#include <algorithm>
 
 
 std::mutex mtx;
@@ -105,6 +106,49 @@ void mtx_test2() {
     mtx.unlock();
 }
 
+void thread_sort(std::vector<int>& vec) {
+    std::cout << "thread_sort start" << std::endl;
+    //std::unique_lock<std::mutex> u_lock (mtx);
+    std::sort(vec.begin(), vec.end());
+    
+    std::this_thread::sleep_for(std::chrono::seconds(4));
+    cond_var.notify_all();
+   
+}
+
+template<typename T>
+void print_vector(const T& vec) {
+    std::cout << "print_vector start" << std::endl;
+    std::unique_lock<std::mutex> u_lock(mtx);
+    cond_var.wait(u_lock);
+
+    for (const auto& pv : vec) {
+        std::cout << pv << '\t';
+    }
+    std::cout << std::endl;
+}
+
+
+void wait_test() {
+    std::unique_lock<std::mutex> u_lock(mtx);
+    std::cout << "wait start" << std::endl;
+    cond_var.wait(u_lock);
+    std::cout << "our msg!!!" << std::endl;
+}
+
+void get_test() {
+    std::cout << "get start" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(4));
+    cond_var.notify_all();
+
+}
+
+void fut_test(std::promise<int>& var) {
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    var.set_value(10);
+}
+
+
 
 int main()
 {
@@ -117,18 +161,28 @@ int main()
     
     //std::reference_wrapper<int> r_value(value);
     //std::thread th([&value, &result]() {result = dowork(value); });
-    //std::thread th1([&value1]() {print_sqr(std::ref(value1)); });
+    //std::thread th1([&value1]() {print_sqr(std::ref(value1)); })
     //std::thread th2([&value2]() {print_sqr(std::ref(value2)); });
-    std::vector<int> vec{ 1, 2, 3 };
-
     //std::promise<int> prom;
     //std::future<int> fut = prom.get_future();
 
-    std::thread th1(mtx_test1);
-    std::thread th2(mtx_test2);
+    std::vector<int> vec;
+    for (int i = 10; i > 0; --i) {
+        vec.push_back(i);
+    }
+
+    //std::thread th1(thread_sort, std::ref(vec));
+    //std::thread th2(print_vector<std::vector<int>>, std::cref(vec));
+
+    std::promise<int> prom;
+
+    std::future<int> fut = prom.get_future();
+
+    std::thread th1(fut_test, std::ref(prom));
+    std::cout << fut.get() << std::endl;
 
     th1.join();
-    th2.join();
+    
     std::cout << "id: " << std::this_thread::get_id() << " main stop" << std::endl;
     return 0;
 }
