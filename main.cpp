@@ -102,7 +102,7 @@ void mtx_test1() {
 
 void mtx_test2() {
     mtx.lock();
-    std::this_thread::sleep_for(std::chrono::seconds(100));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     mtx.unlock();
 }
 
@@ -119,8 +119,7 @@ void thread_sort(std::vector<int>& vec) {
 template<typename T>
 void print_vector(const T& vec) {
     std::cout << "print_vector start" << std::endl;
-    std::unique_lock<std::mutex> u_lock(mtx);
-    cond_var.wait(u_lock);
+    
 
     for (const auto& pv : vec) {
         std::cout << pv << '\t';
@@ -148,6 +147,17 @@ void fut_test(std::promise<int>& var) {
     var.set_value(10);
 }
 
+void fut_vector(std::vector<int>& vec_to_sort, std::promise<std::vector<int>>& sorted_vector) {
+    std::cout << "vector sorting.." << std::endl;
+    std::sort(vec_to_sort.begin(), vec_to_sort.end());
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    sorted_vector.set_value(vec_to_sort);
+}
+
+int sum(const int& value1, const int& value2) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    return value1 + value2;
+}
 
 
 int main()
@@ -174,14 +184,25 @@ int main()
     //std::thread th1(thread_sort, std::ref(vec));
     //std::thread th2(print_vector<std::vector<int>>, std::cref(vec));
 
-    std::promise<int> prom;
+    //std::packaged_task<int(const int&, const int&)> task(sum);
 
-    std::future<int> fut = prom.get_future();
+    //std::future<int> result = task.get_future();
 
-    std::thread th1(fut_test, std::ref(prom));
-    std::cout << fut.get() << std::endl;
+    int a = 10;
+    int b = 20;
 
-    th1.join();
+    //std::thread th1 (std::move(task), std::ref(a), std::ref(b));
+    //std::thread th1([&task, &a, &b]() {task(a, b); });
+    //std::future<int> result = std::async(std::launch::async, std::move(sum), std::ref(a), std::ref(b));
+
+   
+    
+    
+    std::atomic<int> value(19);
+    
+    std::cout << value << std::endl;   
+
+    
     
     std::cout << "id: " << std::this_thread::get_id() << " main stop" << std::endl;
     return 0;
