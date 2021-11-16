@@ -136,7 +136,7 @@ public:
 //=======
 template<typename T, typename I = int>
 //we can do it without "typename I" and just write "int()"
-auto my_f(T& container) ->decltype(T().begin(), I()){
+auto my_f(T& container) ->decltype(T().begin(), int()){
     std::cout << "has iterator begin()\n";
     return 1;
 }
@@ -144,6 +144,34 @@ auto my_f(T& container) ->decltype(T().begin(), I()){
 int my_f(...) {
     std::cout << "has not iterator begin()\n";
     return 0;
+}
+//=======!
+template <typename T, typename = std::enable_if_t<std::is_class_v<T>>>
+auto print_container(const T& container) ->decltype(T().cbegin(), T().cend, void()) {
+    std::cout << "is class" << std::endl;
+    for (const auto& it : container)
+        std::cout << it << "\t";
+    std::cout << '\n';
+}
+
+template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+void print_container(const T& value){
+    std::cout << "is value" << std::endl;
+    std::cout << value << '\n';
+}
+
+void print_container(...) {
+    std::cout << "is not value or container" << std::endl;
+}
+//=======!
+template<typename T = int>
+void strack(const T& value) {
+    std::cout << "int\n";
+}
+
+template<>
+void strack(const double& value) {
+    std::cout << "double\n";
 }
 
 //шаблонную функцию в классе нельзя сделать виртульной 
@@ -165,13 +193,13 @@ int main()
     ++(*p_var);
     std::cout << p_var << '\t' << *p_var << std::endl;*/
 
-    std::vector<int> vec;
-    //my_f(vec);
-    my_f(5);
-    my_f(vec);
+    std::vector<int> vec{ 1, 2, 3 };
+    strack(1);
+    strack((double)1);
 
 
     return 1;
 }
+
 
 
