@@ -148,20 +148,25 @@ int my_f(...) {
 //=======!
 template <typename T, typename = std::enable_if_t<std::is_class_v<T>>>
 auto print_container(const T& container) ->decltype(T().cbegin(), T().cend, void()) {
-    std::cout << "is class" << std::endl;
+    std::cout << "is class ";
     for (const auto& it : container)
         std::cout << it << "\t";
     std::cout << '\n';
 }
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-void print_container(const T& value){
-    std::cout << "is value" << std::endl;
+auto print_container(const T& value) ->decltype(T(), void()){
+    std::cout << "is value ";
     std::cout << value << '\n';
 }
 
+template<typename T, typename = std::enable_if_t<std::is_pointer_v<T>>>
+auto print_container(const T& pointer) -> decltype(*T(), void()) {
+    std::cout << "is pointer " << *pointer << '\n';
+}
+
 void print_container(...) {
-    std::cout << "is not value or container" << std::endl;
+    std::cout << "is not value or container " << std::endl;
 }
 //=======!
 template<typename T = int>
@@ -194,12 +199,15 @@ int main()
     std::cout << p_var << '\t' << *p_var << std::endl;*/
 
     std::vector<int> vec{ 1, 2, 3 };
-    strack(1);
-    strack((double)1);
-
+    int* px;
+    int x = 10;
+    px = &x;
+    print_container(1);
+    print_container(vec);
+    print_container(px);
+    print_container(vec.begin());
 
     return 1;
 }
-
 
 
