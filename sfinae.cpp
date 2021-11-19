@@ -1,4 +1,4 @@
-#include <iostream>
+   #include <iostream>
 #include <vector>
 #include <type_traits>
 #include <limits>
@@ -259,25 +259,67 @@ void same2(...) {
 //or
 template <typename T>
 std::enable_if_t<std::is_same_v<T, std::string>, std::string> same3(T t) {
+    std::cout << "is string\n";
     return t;
 }
 
 template <typename T>
 std::enable_if_t<!std::is_same_v<T, std::string>, std::string> same3(T t) {
+    std::cout << "is not string\n";
     return std::to_string(t);
 }
-//=======
+//======= variadic template
+template <size_t...>
+struct Sum {};
 
+template <>
+struct Sum<>
+{
+    enum { value = 0 };
+};
+
+template <size_t first, size_t... other>
+struct Sum<first, other...>
+{
+    enum { value = first + Sum<other...>::value };
+};
+
+template <class... Types>
+struct Sum_sizeof
+{
+    enum { value = Sum<sizeof(Types)...>::value };
+};
+//=======!!
+class My_pack {
+public:
+    int x;
+    double y;
+    std::string z;
+};
+
+template <typename T>
+void show_list(T value) {
+    std::cout << value << '\n';
+    return;
+}
+
+template<typename T, typename... Args> // Args — это пакет параметров шаблона
+void show_list(T value, Args... arg) // args — это пакет параметров функции
+{
+    std::cout << value << "\t";
+    show_list(arg...); // <--- Рекурсивные вызовы
+}
 
 
 //шаблонную функцию в классе нельзя сделать виртульной 
 int main()
 {
-    std::string str;
+    
+    show_list(1.2, "hello", 17);
     
 
-    same2(str);
-    same2(5);
+    //same3(str);
+    //same3(5);
 
     //std::cout << std::is_same<int, std::string>::value << std::endl;
 
