@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <iterator>
+#include <cstdarg>
 
 template<typename T>
 void temp_test(T value) {
@@ -165,9 +166,21 @@ auto print_container(const T& pointer) -> decltype(*T(), void()) {
     std::cout << "is pointer " << *pointer << '\n';
 }
 
+template<typename T, typename = std::enable_if_t<std::is_class_v<T>>>
+auto print_container(T& my_class) -> decltype(T().dkosinov(), void()) {
+    my_class.dkosinov();
+}
+
 void print_container(...) {
     std::cout << "is not value or container " << std::endl;
 }
+
+class for_sfinae {
+public:
+    void dkosinov() {
+        std::cout << "is_my_class" << std::endl;
+    }
+};
 //=======!
 template<typename T = int>
 void strack(const T& value) {
@@ -178,11 +191,100 @@ template<>
 void strack(const double& value) {
     std::cout << "double\n";
 }
+//=======
+template<typename T>
+void ellips_test(T first, ...) {
+    va_list list;
+    va_start(list, first);
+    std::cout << first << '\t';
+    while (true) {
+        T tmp = va_arg(list, T);
+        std::cout << tmp << '\t';
+        if (tmp == -1. || tmp == -1)
+            break;
+    }
+    std::cout << '\n';
+    //очищаем лист
+    va_end(list);
+}
+template<typename T>
+void ellips_test2(...) {
+    va_list list;
+    va_start(list, T);
+    while (true) {
+        std::cout << va_arg(list, T) << '\t';
+    }
+    
+}
+//=======
+template<typename T, typename = std::enable_if_t<std::is_class_v<T>>>
+void dkosinov_sfinae(const T& class_obj){
+    std::cout << "is class\n";
+}
+
+template<typename T>
+auto dkosinov_sfinae(const T& value) ->decltype(++T(), void()) {
+    std::cout << "is number\n";
+}
+
+void dkosinov_sfinae(...) {
+    std::cout << "is not class or number\n";
+}
+//=======
+class S {
+public:
+    int x;
+    bool y;
+    double z;
+    std::string str;
+};
+//=======
+template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+void same(T value) {
+    std::cout << "is int" << std::endl;
+}
+
+void same(...) {
+    std::cout << "not\n";
+}
+//=======
+template <typename T>
+auto same2(T t) -> decltype(T().c_str(), void()) {
+    std::cout << "string\n";
+}
+
+void same2(...) {
+    std::cout << "not\n";
+}
+//or
+template <typename T>
+std::enable_if_t<std::is_same_v<T, std::string>, std::string> same3(T t) {
+    return t;
+}
+
+template <typename T>
+std::enable_if_t<!std::is_same_v<T, std::string>, std::string> same3(T t) {
+    return std::to_string(t);
+}
+//=======
+
+
 
 //шаблонную функцию в классе нельзя сделать виртульной 
 int main()
 {
+    std::string str;
     
+
+    same2(str);
+    same2(5);
+
+    //std::cout << std::is_same<int, std::string>::value << std::endl;
+
+  /*  ellips_test(1, 2, 3, 4, 5, -1);
+    ellips_test(1.1, 2., 3., 4., 5., -1.);
+    ellips_test(-1.1, 2., 3., 4.997, 5., -1.);*/
+
     /*auto pf_static = &invoke_test::print_string;
     auto pf = &invoke_test::print_line;
     invoke_test obj;
@@ -198,7 +300,7 @@ int main()
     ++(*p_var);
     std::cout << p_var << '\t' << *p_var << std::endl;*/
 
-    std::vector<int> vec{ 1, 2, 3 };
+    /*std::vector<int> vec{ 1, 2, 3 };
     int* px;
     int x = 10;
     px = &x;
@@ -206,8 +308,10 @@ int main()
     print_container(vec);
     print_container(px);
     print_container(vec.begin());
+    for_sfinae obj;
+    print_container(obj);*/
 
-    return 1;
+    return 0;
 }
 
 
