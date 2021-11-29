@@ -1,4 +1,4 @@
-   #include <iostream>
+#include <iostream>
 #include <vector>
 #include <type_traits>
 #include <limits>
@@ -6,6 +6,7 @@
 #include <string>
 #include <iterator>
 #include <cstdarg>
+#include <any>
 
 template<typename T>
 void temp_test(T value) {
@@ -304,18 +305,73 @@ void show_list(T value) {
 }
 
 template<typename T, typename... Args> // Args — это пакет параметров шаблона
-void show_list(T value, Args... arg) // args — это пакет параметров функции
+void show_list(T value, Args... arg) // arg — это пакет параметров функции
 {
     std::cout << value << "\t";
     show_list(arg...); // <--- Рекурсивные вызовы
 }
+//retry after long time
+template<typename T>
+auto fff(T value)->decltype(T().c_str(), void()) {
+    std::cout << "is string\n";
+}
+void fff(...) {
+    std::cout << "is not string\n";
+}
+//==
+template <typename T>
+std::enable_if_t<std::is_same_v<T, std::string>, std::string> ddd(T t) {
+    std::cout << "is string\n";
+    return t;
+}
+
+template <typename T>
+std::enable_if_t<!std::is_same_v<T, std::string>, std::string> ddd(T t) {
+    std::cout << "is not string\n";
+    return std::to_string(t);
+}
+//== if constexpr
+template<typename T>
+void mmm(T value) {
+    if constexpr (std::is_same_v<T, std::string>) {
+        std::cout << value.size() << " string size\n";
+    }
+    else {
+        std::cout << "is not string\n";
+    }
+}
+//==std::enable_if
+template <bool B, typename T = void>
+using enable_if_t = typename std::enable_if<B, T>::type;
+template <class S>
+enable_if_t<std::is_class<S>::value> bar(S value_class) {
+    std::cout << "is class\n";
+}
+
+template <class S>
+enable_if_t<!std::is_class<S>::value> bar(S non_class) {
+    std::cout << "is not class \n";
+}
+
+
+
+
 
 
 //шаблонную функцию в классе нельзя сделать виртульной 
 int main()
 {
+    std::vector<int> vec;
+    std::string str;
     
-    show_list(1.2, "hello", 17);
+    
+  /*  std::string str = "hello";
+    show_list(12, str, 5.1, true);
+    std::string* pstr = &str;
+    decltype(auto) tmp = pstr;
+    std::cout << tmp << std::endl;
+    std::string newstr = *tmp;
+    std::cout << newstr << std::endl;*/
     
 
     //same3(str);
